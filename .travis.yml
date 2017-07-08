@@ -6,6 +6,7 @@ go:
   - master
 
 script:
+  - cd map/
   - go test -race -coverprofile=coverage.txt -covermode=atomic
 
 after_success:
