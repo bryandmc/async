@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+
+	"github.com/flosch/pongo2"
 )
 
 // the line:
 //go:generate go run main.go -arg int -ret int -o map.go
+//go:generate go run main.go -arg string -ret int -o mapParallel.go -p true
 // works as such: The arg flag represents the function you want to pass in to the map function's argument type
 // a.k.a  func Map(arg Type) retType { ... }
 var (
@@ -18,26 +21,27 @@ var (
 	output   = flag.String("o", "map.go", "output file name; ex: mapInt.go")
 )
 
-var c = func(i interface{}) interface{} {
-	return i.(int) + 10
-}
-
 func main() {
 	flag.Parse()
-	fmt.Println(*fnArgT, *fnRetT, *output)
-
-	val := MapDefine{
-		FunctionArgType:    *fnArgT,
-		FunctionReturnType: *fnRetT,
+	if !*parallel {
+		fmt.Println(*fnArgT, *fnRetT, *output)
+		val := MapDefine{
+			FunctionArgType:    *fnArgT,
+			FunctionReturnType: *fnRetT,
+		}
+		t, _ := template.ParseFiles("map.template")
+		f, _ := os.Create(*output)
+		t.Execute(f, &val)
+	} else {
+		fmt.Println(*fnArgT, *fnRetT, *output)
+		val := pongo2.Context{
+			"FunctionArgType":    *fnArgT,
+			"FunctionReturnType": *fnRetT,
+		}
+		t, _ := pongo2.FromFile("map_parallel.template")
+		f, _ := os.Create(*output)
+		t.ExecuteWriter(val, f)
 	}
-
-	t, _ := template.ParseFiles("map.template")
-	f, _ := os.Create(*output)
-	t.Execute(f, &val)
-	// m := MapUnsafeParallel(c, 1, 2, 3, 4)
-	// q := MapUnsafe(c, 1, 2)
-	// fmt.Println(m)
-	// fmt.Println(q)
 }
 
 // MapDefine is used when generating type-safe implementations of 'Map' for use
