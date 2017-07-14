@@ -42,6 +42,8 @@ func main() {
 		f, _ := os.Create(*output)
 		t.ExecuteWriter(val, f)
 	}
+	a := make([]int, 10, 100)
+	a[0] = 10
 }
 
 // MapDefine is used when generating type-safe implementations of 'Map' for use
